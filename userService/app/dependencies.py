@@ -1,23 +1,51 @@
 import os
+from datetime import datetime, timedelta
+from jose import JWTError, jwt
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
-from fastapi import Depends
 from dotenv import load_dotenv
+from app.utils import crud
 
 load_dotenv()
 
-# URL подключения к базе данных
 DATABASE_URL = os.getenv("DATABASE_URL")
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-# Создаем асинхронный движок
 engine = create_async_engine(DATABASE_URL, echo=True)
 
-# Создаем асинхронную сессию
 AsyncSessionLocal = sessionmaker(
     engine, class_=AsyncSession, autocommit=False, autoflush=False
 )
 
-# Асинхронная зависимость для получения сессии
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=15))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Could not validate credentials",
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if not username:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = await crud.get_user_by_username(db, username)
+    if not user:
+        raise credentials_exception
+    return user
