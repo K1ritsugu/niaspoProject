@@ -5,9 +5,13 @@ class UserBase(BaseModel):
     username: str
     email: str
     address: Optional[str] = None
+    role: Optional[str] = 'user'
 
 class UserCreate(UserBase):
     password: str
+
+class AdminUserCreate(UserCreate):
+    admin_secret: str 
 
 class UserOut(UserBase):
     id: int

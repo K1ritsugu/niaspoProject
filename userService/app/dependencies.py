@@ -12,6 +12,7 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
+ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -22,6 +23,9 @@ AsyncSessionLocal = sessionmaker(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+def get_admin_secret_key():
+    return ADMIN_SECRET_KEY
 
 async def get_db():
     async with AsyncSessionLocal() as session:

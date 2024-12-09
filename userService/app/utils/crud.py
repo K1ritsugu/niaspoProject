@@ -18,7 +18,8 @@ async def create_user(db: AsyncSession, user: schemas.UserCreate):
         username=user.username,
         email=user.email,
         password_hash=hashed_password,
-        address=user.address
+        address=user.address,
+        role=getattr(user, 'role', 'user')
     )
     db.add(db_user)
     await db.commit()
