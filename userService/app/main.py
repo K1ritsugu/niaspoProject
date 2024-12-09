@@ -1,33 +1,53 @@
 from fastapi import FastAPI
-from fastapi.openapi.utils import get_openapi
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from app.models import models
-from app.dependencies import engine
+from fastapi.openapi.utils import get_openapi
 from app.routers import user
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.responses import JSONResponse
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(models.Base.metadata.create_all)
-    yield
+app = FastAPI(title="User Service")
 
-app = FastAPI(lifespan=lifespan)
+# Подключаем роутеры
+app.include_router(user.router, prefix="/users", tags=["Users"])
 
-app.include_router(user.router)
-
+# Определяем схему безопасности
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="User Service API",
         version="1.0.0",
-        description="API для авторизации, регистрации и создания токенов для пользователей",
+        description="API для управления пользователями с авторизацией",
         routes=app.routes,
     )
+    
+    # Определяем BearerAuth схему
+    openapi_schema["components"]["securitySchemes"] = {
+        "BearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Введите токен в формате 'Bearer <токен>'",
+        }
+    }
+    
+    # Применяем схему безопасности глобально
+    openapi_schema["security"] = [{"BearerAuth": []}]
+    
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
+# Настройка CORS (опционально, если требуется)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Замените на список разрешённых источников
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     import uvicorn

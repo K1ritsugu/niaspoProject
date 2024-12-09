@@ -93,6 +93,8 @@ services:
       - menu_service
       - payment_service
       - notification_service
+    networks:
+      - food_delivery_network
 
 networks:
   food_delivery_network:

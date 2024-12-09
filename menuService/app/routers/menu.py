@@ -59,32 +59,35 @@ async def read_dishes(
 @router.put("/dishes/{dish_id}", response_model=schemas.DishOut)
 async def update_dish(
     dish_id: int,
-    dish_update: schemas.DishUpdate,
+    dish_update: str = Form(...),  # Принимаем строку JSON в форме
     db: AsyncSession = Depends(dependencies.get_db),
     image: UploadFile = File(None),
     current_user: dict = Depends(dependencies.get_current_admin_user),
 ):
     try:
+        dish_update_data = schemas.DishUpdate.parse_raw(dish_update)
+
         db_dish = await crud.get_dish(db, dish_id=dish_id)
         if db_dish is None:
             raise HTTPException(status_code=404, detail="Dish not found")
 
-        # Если передано новое изображение, обновляем его
         if image:
             image_path = Path("images") / image.filename
             image_path.parent.mkdir(parents=True, exist_ok=True)
             with open(image_path, "wb") as buffer:
                 buffer.write(image.file.read())
-            dish_update.image_url = str(image_path)
+            dish_update_data.image_url = str(image_path)
 
-        # Обновляем данные блюда
-        updated_dish = await crud.update_dish(db=db, dish_id=dish_id, dish_update=dish_update)
+        updated_dish = await crud.update_dish(db=db, dish_id=dish_id, dish_update=dish_update_data)
         if not updated_dish:
             raise HTTPException(status_code=400, detail="Failed to update dish")
+
         return updated_dish
 
     except IntegrityError:
         raise HTTPException(status_code=400, detail="Dish name already exists.")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/dishes/{dish_id}", response_model=dict)
 async def delete_dish(
@@ -93,6 +96,7 @@ async def delete_dish(
     current_user: dict = Depends(dependencies.get_current_admin_user),
 ):
     db_dish = await crud.get_dish(db, dish_id=dish_id)
+    
     if db_dish is None:
         raise HTTPException(status_code=404, detail="Dish not found")
 

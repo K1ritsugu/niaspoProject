@@ -44,6 +44,6 @@ async def create_admin_user(
         raise HTTPException(status_code=400, detail="Пользователь уже зарегистрирован")
     return await crud.create_user(db=db, user=admin_user)
 
-@router.get("/users/me/", response_model=schemas.UserOut)
+@router.get("/me/", response_model=schemas.UserOut)
 async def read_users_me(current_user: schemas.UserOut = Depends(dependencies.get_current_user)):
     return current_user

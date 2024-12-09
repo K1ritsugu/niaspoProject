@@ -17,7 +17,7 @@ app = FastAPI(lifespan=lifespan)
 # Указываем папку для хранения изображений
 app.mount("/images", StaticFiles(directory="images"), name="images")
 
-app.include_router(menu.router)
+app.include_router(menu.router, prefix="/menu", tags=["Menu"])
 
 def custom_openapi():
     if app.openapi_schema:

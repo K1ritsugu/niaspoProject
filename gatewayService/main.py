@@ -2,6 +2,7 @@ from fastapi import FastAPI, APIRouter, Request, Response, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
 import httpx
+import asyncio
 
 app = FastAPI(title="Gateway Service")
 
@@ -33,12 +34,16 @@ async def merge_openapi_specs():
         NOTIFICATION_SERVICE_URL,
     ]
     for url in service_urls:
-        try:
-            spec = await get_remote_openapi(url)
-            specs.append(spec)
-        except httpx.RequestError as e:
-            print(f"Warning: Could not fetch OpenAPI spec from {url}: {e}")
-            continue
+        for attempt in range(5):
+            try:
+                spec = await get_remote_openapi(url)
+                specs.append(spec)
+                break
+            except httpx.RequestError as e:
+                print(f"Warning: Attempt {attempt + 1} failed to fetch OpenAPI spec from {url}: {e}")
+                await asyncio.sleep(2) 
+        else:
+            print(f"Error: Could not fetch OpenAPI spec from {url} after multiple attempts.")
 
     merged_paths = {}
     merged_components = {"schemas": {}, "securitySchemes": {}}
@@ -78,13 +83,14 @@ async def overridden_swagger():
 async def proxy(request: Request, service_url: str, path: str):
     async with httpx.AsyncClient() as client:
         try:
-            # Формируем заголовки, исключая 'host'
+            # Log the proxied request details
+            print(f"Proxying {request.method} request to: {service_url}/{path}")
+            
+            # Existing proxy logic...
             headers = {key: value for key, value in request.headers.items() if key.lower() != 'host'}
-
-            # Прокидываем параметры запроса
             params = dict(request.query_params)
-
-            # Обработка форм и файлов
+            
+            # Handling multipart/form-data
             if request.headers.get("content-type", "").startswith("multipart/form-data"):
                 form = await request.form()
                 data = {}
@@ -94,7 +100,7 @@ async def proxy(request: Request, service_url: str, path: str):
                         files.append((field, (value.filename, await value.read(), value.content_type)))
                     else:
                         data[field] = value
-
+                
                 response = await client.request(
                     method=request.method,
                     url=f"{service_url}/{path}",
@@ -112,52 +118,57 @@ async def proxy(request: Request, service_url: str, path: str):
                     params=params,
                     content=body,
                 )
-
+            
+            # Log the response status
+            print(f"Received response with status: {response.status_code},GGGG {service_url}/{path}")
+            
             return Response(
                 content=response.content,
                 status_code=response.status_code,
                 headers={key: value for key, value in response.headers.items() if key.lower() != 'content-encoding'},
             )
-        except httpx.RequestError:
+        except httpx.RequestError as e:
+            print(f"Request error while proxying to {service_url}/{path}: {e}")
             raise HTTPException(status_code=503, detail="Service Unavailable")
 
 # Маршруты для User Service
 @user_router.post("/registration/")
 async def create_user(request: Request):
-    return await proxy(request, USER_SERVICE_URL, "registration/")
+    print(request)
+    return await proxy(request, USER_SERVICE_URL, "users/registration/")
 
 @user_router.post("/admin/registration/")
 async def create_admin_user(request: Request):
-    return await proxy(request, USER_SERVICE_URL, "admin/registration/")
+    return await proxy(request, USER_SERVICE_URL, "users/admin/registration/")
 
 @user_router.post("/token")
 async def login_for_access_token(request: Request):
-    return await proxy(request, USER_SERVICE_URL, "token")
+    return await proxy(request, USER_SERVICE_URL, "users/token")
 
-@user_router.get("/me/")
+@user_router.get("/users/me")
 async def read_users_me(request: Request):
     return await proxy(request, USER_SERVICE_URL, "users/me/")
 
 # Маршруты для Menu Service
 @menu_router.post("/dishes/")
 async def create_dish(request: Request):
-    return await proxy(request, MENU_SERVICE_URL, "dishes/")
+    return await proxy(request, MENU_SERVICE_URL, "menu/dishes/")
 
 @menu_router.get("/dishes/{dish_id}")
 async def read_dish(request: Request, dish_id: int):
-    return await proxy(request, MENU_SERVICE_URL, f"dishes/{dish_id}")
+    return await proxy(request, MENU_SERVICE_URL, f"menu/dishes/{dish_id}")
 
 @menu_router.get("/dishes/")
 async def read_dishes(request: Request):
-    return await proxy(request, MENU_SERVICE_URL, "dishes/")
+    return await proxy(request, MENU_SERVICE_URL, "menu/dishes/")
 
 @menu_router.put("/dishes/{dish_id}")
 async def update_dish(request: Request, dish_id: int):
-    return await proxy(request, MENU_SERVICE_URL, f"dishes/{dish_id}")
+    return await proxy(request, MENU_SERVICE_URL, f"menu/dishes/{dish_id}")
 
 @menu_router.delete("/dishes/{dish_id}")
 async def delete_dish(request: Request, dish_id: int):
-    return await proxy(request, MENU_SERVICE_URL, f"dishes/{dish_id}")
+    return await proxy(request, MENU_SERVICE_URL, f"menu/dishes/{dish_id}")
 
 # Маршруты для Payment Service
 @payment_router.post("/pay/")
