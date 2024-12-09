@@ -81,6 +81,19 @@ services:
     volumes:
       - ./notificationService:/app
 
+  gateway_service:
+    build:
+      context: ./gatewayService
+    container_name: gateway_service
+    command: uvicorn main:app --host 0.0.0.0 --port 80
+    ports:
+      - "80:80"
+    depends_on:
+      - user_service
+      - menu_service
+      - payment_service
+      - notification_service
+
 networks:
   food_delivery_network:
 
