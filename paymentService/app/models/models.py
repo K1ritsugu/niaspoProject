@@ -23,8 +23,8 @@ class Transaction(Base):
     amount = Column(Float, nullable=False)
     payment_method = Column(String, nullable=False)  # Ограничение на 'cash' и 'card'
     status = Column(String, default="pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    closed_at = Column(DateTime, nullable=True, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
+    closed_at = Column(DateTime, nullable=True, default=datetime.now)
     order = relationship("Order", back_populates="transaction", uselist=False)
 
 class Order(Base):
@@ -36,7 +36,16 @@ class Order(Base):
     items = Column(JSON, nullable=False)  # Список словарей с dish_id и amount
     status = Column(String, default="processing")
     payment_method = Column(String, nullable=False)  # Ограничение на 'cash' и 'card'
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
     closed_at = Column(DateTime, nullable=True) 
     transaction = relationship("Transaction", back_populates="order")
     user = relationship("User")  # Предполагается, что модель User определена в другом сервисе
+
+class Dish(Base):
+    __tablename__ = 'dishes'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(String)
+    price = Column(Float)
+    image_url = Column(String)

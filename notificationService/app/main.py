@@ -19,9 +19,9 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Payment Service API",
+        title="Notification Service API",
         version="1.0.0",
-        description="API для обработки платежей и заказов с авторизацией",
+        description="API для отслеживания обновлений статуса заказа",
         routes=app.routes,
     )
     
