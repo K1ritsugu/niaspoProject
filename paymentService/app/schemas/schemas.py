@@ -34,7 +34,7 @@ class OrderOut(BaseModel):
     closed_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class TransactionCreate(BaseModel):
     user_id: int
@@ -57,4 +57,4 @@ class TransactionOut(BaseModel):
     closed_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

@@ -17,10 +17,8 @@ app = FastAPI(lifespan=lifespan)
 # Указываем папку для хранения изображений
 app.mount("/images", StaticFiles(directory="images"), name="images")
 
-# Подключаем роутеры
 app.include_router(menu.router)
 
-# Настройка OpenAPI для поддержки Bearer Auth
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -30,7 +28,7 @@ def custom_openapi():
         description="API для управления блюдами с авторизацией",
         routes=app.routes,
     )
-    # Добавляем схему безопасности BearerAuth как словарь
+
     security_scheme = {
         "BearerAuth": {
             "type": "http",
@@ -44,14 +42,14 @@ def custom_openapi():
     if "securitySchemes" not in openapi_schema["components"]:
         openapi_schema["components"]["securitySchemes"] = {}
     openapi_schema["components"]["securitySchemes"].update(security_scheme)
-    # Применяем схему безопасности глобально
+
     openapi_schema["security"] = [{"BearerAuth": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 app.openapi = custom_openapi
 
-# Запуск приложения
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=9000)
