@@ -47,9 +47,42 @@ services:
     volumes:
       - ./menuService:/app
 
-volumes:
-  postgres_data:
+  payment_service:
+    build: ./paymentService
+    container_name: payment_service
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001
+    environment:
+      DATABASE_URL: postgresql+asyncpg://test_user:test_password@postgres:5432/food_delivery_db
+      USER_SERVICE_URL: http://user_service:8000
+    depends_on:
+      - postgres
+      - user_service
+    ports:
+      - "8001:8001"
+    networks:
+      - food_delivery_network
+    volumes:
+      - ./paymentService:/app
+
+  notification_service:
+    build: ./notificationService
+    container_name: notification_service
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8002
+    environment:
+      DATABASE_URL: postgresql+asyncpg://test_user:test_password@postgres:5432/food_delivery_db
+      USER_SERVICE_URL: http://user_service:8000
+    depends_on:
+      - postgres
+      - user_service
+    ports:
+      - "8002:8002"
+    networks:
+      - food_delivery_network
+    volumes:
+      - ./notificationService:/app
 
 networks:
   food_delivery_network:
-    driver: bridge
+
+volumes:
+  postgres_data:
