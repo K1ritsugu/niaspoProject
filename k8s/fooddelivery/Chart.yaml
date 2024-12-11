@@ -1,0 +1,4 @@
+apiVersion: v2
+name: food_delivery
+description: A Helm chart for deploying the application for food delivery with Postgresql, API services
+version: 1.0.0

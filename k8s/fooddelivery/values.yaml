@@ -1,0 +1,33 @@
+serviceAccount:
+  create: true
+  name: ""
+
+postgres:
+  image:
+    repository: sha256:813dc60d83aad83a4c2018603f505ee98b1506f5ce56a6d6a97918950ec9d153
+
+gatewayservice:
+  image:
+    repository: sha256:e5054483c7be0b35bb99d91f9ef41a470962e4404fdbf89af57716b9d608350a
+  service:
+    type: LoadBalancer
+    port: 80
+
+notificationservice:
+  image:
+    repository: sha256:73a96d32bbbc46190179027b45b2ce5f20eed322fbbb4a41d9d17d641daf7afd
+
+menuservice:
+  image:
+    repository: sha256:6bb7c98b31f228420c96c9c36c4b7029ade35f53c565fd5007f97344ba9e8b83
+
+paymentservice:
+  image:
+    repository: sha256:fbf0ba77d852e1043a58cd988aa55d750f6e27a98dc46fc89ab01b781350f0ab
+
+userservice:
+  image:
+    repository: sha256:813ff1d3b71860db669d1fdc20b699760ad515dcfbf97ddfd153fb922be7cb34
+
+service:
+  type: ClusterIP

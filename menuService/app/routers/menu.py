@@ -5,6 +5,7 @@ from app import dependencies
 from app.utils import crud
 from app.schemas import schemas
 from pathlib import Path
+from typing import Optional
 
 router = APIRouter()
 
@@ -59,15 +60,21 @@ async def read_dishes(
 @router.put("/dishes/{dish_id}", response_model=schemas.DishOut)
 async def update_dish(
     dish_id: int,
-    dish_update: str = Form(...),  # Принимаем строку JSON в форме
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    price: Optional[float] = None,
     db: AsyncSession = Depends(dependencies.get_db),
     image: UploadFile = File(None),
     current_user: dict = Depends(dependencies.get_current_admin_user),
 ):
     try:
-        dish_update_data = schemas.DishUpdate.parse_raw(dish_update)
-
+        dish_update_data = {}
+        for key in {name, description, price}:
+            if key:
+                dish_update_data.update({f"{key}": key})
+        print(dish_update_data)        
         db_dish = await crud.get_dish(db, dish_id=dish_id)
+        
         if db_dish is None:
             raise HTTPException(status_code=404, detail="Dish not found")
 
@@ -76,7 +83,7 @@ async def update_dish(
             image_path.parent.mkdir(parents=True, exist_ok=True)
             with open(image_path, "wb") as buffer:
                 buffer.write(image.file.read())
-            dish_update_data.image_url = str(image_path)
+            dish_update_data["image_url"] = str(image_path)
 
         updated_dish = await crud.update_dish(db=db, dish_id=dish_id, dish_update=dish_update_data)
         if not updated_dish:

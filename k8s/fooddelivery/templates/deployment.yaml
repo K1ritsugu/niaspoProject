@@ -1,0 +1,186 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres  
+  template:
+    metadata:
+      labels:
+        app: postgres
+
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image.repository }}
+          env:
+            - name: POSTGRES_USER
+              value: test_user
+            - name: POSTGRES_PASSWORD
+              value: test_password
+            - name: POSTGRES_DB
+              value: food_delivery_db
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: {{ .Values.userservice.image.repository }}
+          env:
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://test_user:test_password@postgres:5432/food_delivery_db
+            - name: SECRET_KEY
+              value: your-secret-key
+            - name: ADMIN_SECRET_KEY
+              value: your-admin-secret-key
+          ports:
+            - containerPort: 8000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menu-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: menu-service
+  template:
+    metadata:
+      labels:
+        app: menu-service
+    spec:
+      containers:
+        - name: menu-service
+          image: {{ .Values.menuservice.image.repository }}
+          env:
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://test_user:test_password@postgres:5432/food_delivery_db
+            - name: USER_SERVICE_URL
+              value: http://user-service:8000
+          ports:
+            - containerPort: 9000
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: {{ .Values.paymentservice.image.repository }}
+          env:
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://test_user:test_password@postgres:5432/food_delivery_db
+            - name: USER_SERVICE_URL
+              value: http://user-service:8000
+          ports:
+            - containerPort: 8001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: {{ .Values.notificationservice.image.repository }}
+          env:
+            - name: DATABASE_URL
+              value: postgresql+asyncpg://test_user:test_password@postgres:5432/food_delivery_db
+            - name: USER_SERVICE_URL
+              value: http://user-service:8000
+          ports:
+            - containerPort: 8002
+            
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-service
+  template:
+    metadata:
+      labels:
+        app: gateway-service
+    spec:
+      initContainers:
+        - name: wait-for-user-service
+          image: sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
+          command: ["sh", "-c", "until wget -qO- http://user-service:8000/docs; do echo 'waiting for user-service'; sleep 5; done"]
+        - name: wait-for-menu-service
+          image: sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
+          command: ["sh", "-c", "until wget -qO- http://menu-service:9000/docs; do echo 'waiting for menu-service'; sleep 5; done"]
+        - name: wait-for-payment-service
+          image: sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
+          command: ["sh", "-c", "until wget -qO- http://payment-service:8001/docs; do echo 'waiting for payment-service'; sleep 5; done"]
+        - name: wait-for-notification-service
+          image: sha256:c1fe1679c34d9784c1b0d1e5f62ac0a79fca01fb6377cdd33e90473c6f9f9a69
+          command: ["sh", "-c", "until wget -qO- http://notification-service:8002/docs; do echo 'waiting for notification-service'; sleep 5; done"]
+      containers:
+        - name: gateway-service
+          image: {{ .Values.gatewayservice.image.repository }}
+          env:
+            - name: USER_SERVICE_URL
+              value: http://user-service:8000
+            - name: MENU_SERVICE_URL
+              value: http://menu-service:9000
+            - name: PAYMENT_SERVICE_URL
+              value: http://payment-service:8001
+            - name: NOTIFICATION_SERVICE_URL
+              value: http://notification-service:8002 
+
+          ports:
+            - containerPort: 80
+
+
+

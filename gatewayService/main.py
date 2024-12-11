@@ -1,16 +1,18 @@
+import httpx
+import asyncio
+import os
 from fastapi import FastAPI, APIRouter, Request, Response, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
-import httpx
-import asyncio
+
 
 app = FastAPI(title="Gateway Service")
 
 # Базовые URL микросервисов
-USER_SERVICE_URL = "http://user_service:8000"
-MENU_SERVICE_URL = "http://menu_service:9000"
-PAYMENT_SERVICE_URL = "http://payment_service:8001"
-NOTIFICATION_SERVICE_URL = "http://notification_service:8002"
+USER_SERVICE_URL = os.getenv("USER_SERVICE_URL")
+MENU_SERVICE_URL = os.getenv("MENU_SERVICE_URL")
+PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL")
+NOTIFICATION_SERVICE_URL = os.getenv("NOTIFICATION_SERVICE_URL")
 
 # Роутеры для разных микросервисов
 user_router = APIRouter(prefix="/users", tags=["Users"])

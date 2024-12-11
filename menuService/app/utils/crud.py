@@ -28,13 +28,13 @@ async def create_dish(db: AsyncSession, dish: schemas.DishCreate):
 
 
 # CRUD для обновления блюда
-async def update_dish(db: AsyncSession, dish_id: int, dish_update: schemas.DishUpdate):
+async def update_dish(db: AsyncSession, dish_id: int, dish_update: dict):
     query = select(models.Dish).where(models.Dish.id == dish_id)
     result = await db.execute(query)
     db_dish = result.scalars().first()
     if not db_dish:
         return None
-    for key, value in dish_update.dict(exclude_unset=True).items():
+    for key, value in dish_update.items():
         setattr(db_dish, key, value)
     await db.commit()
     await db.refresh(db_dish)
