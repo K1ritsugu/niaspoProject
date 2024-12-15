@@ -104,7 +104,7 @@ services:
     build: ./frontend
     container_name: frontend
     environment:
-      REACT_APP_API_GATEWAY_URL: http://localhost
+      REACT_APP_API_GATEWAY_URL: http://212.192.31.136
     ports:
       - "3000:3000" 
     depends_on:
