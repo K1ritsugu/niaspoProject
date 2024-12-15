@@ -1,0 +1,29 @@
+name: CI/CD with Docker Compose
+
+on:
+  push:
+    branches:
+      - master # Запускается при пуше в ветку master
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Клонируем репозиторий
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. Подключаемся по SSH и выполняем git pull + перезапуск docker-compose
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }} # IP или хост сервера
+          username: ${{ secrets.SERVER_USER }} # Имя пользователя
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # SSH ключ для подключения
+          script: |
+            cd /root/Artur/niaspoProject  # Путь до вашего проекта на сервере
+            git pull                  # Получаем последние изменения
+            docker-compose down       # Останавливаем текущие контейнеры
+            docker-compose up --build -d  # Собираем и запускаем новые контейнеры
