@@ -9,7 +9,6 @@ function MenuList() {
   );
   const [currentPage, setCurrentPage] = useState(1); // Текущая страница
   const [totalItems, setTotalItems] = useState(0); // Общее количество блюд
-  const [selectedItem, setSelectedItem] = useState(null); // Выбранный элемент для попапа
   const itemsPerPage = 12; // Количество блюд на странице
 
   // Получение блюд с пагинацией
@@ -32,13 +31,27 @@ function MenuList() {
   // Добавление в корзину
   const addToCart = (item) => {
     setCart((prevCart) => {
-      const updatedCart = prevCart.find((cartItem) => cartItem.id === item.id)
+      const updatedCart = prevCart.some((cartItem) => cartItem.id === item.id)
         ? prevCart.map((cartItem) =>
             cartItem.id === item.id
               ? { ...cartItem, quantity: cartItem.quantity + 1 }
               : cartItem
           )
         : [...prevCart, { ...item, quantity: 1 }];
+
+      localStorage.setItem("cart", JSON.stringify(updatedCart)); // Обновление localStorage
+      return updatedCart;
+    });
+  };
+
+  // Обновление количества
+  const updateQuantity = (id, delta) => {
+    setCart((prevCart) => {
+      const updatedCart = prevCart
+        .map((item) =>
+          item.id === id ? { ...item, quantity: item.quantity + delta } : item
+        )
+        .filter((item) => item.quantity > 0); // Удаляем, если количество <= 0
       localStorage.setItem("cart", JSON.stringify(updatedCart));
       return updatedCart;
     });
@@ -73,18 +86,39 @@ function MenuList() {
                 src={`${process.env.REACT_APP_API_GATEWAY_URL}/menu/images/${item.image_url.split("images/")[1]}`}
                 alt={item.name}
                 className="w-full h-48 object-cover cursor-pointer"
-                onClick={() => setSelectedItem(item)} // Открытие модального окна
               />
               <div className="p-4 text-center">
                 <h3 className="text-lg font-semibold">{item.name}</h3>
                 <p className="text-gray-500">{item.description}</p>
                 <p className="text-lg font-bold mt-2">${item.price}</p>
-                <button
-                  onClick={() => addToCart(item)}
-                  className="mt-3 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Add to Cart
-                </button>
+
+                {/* Управление количеством */}
+                {cartItem ? (
+                  <div className="flex justify-center items-center mt-3">
+                    <button
+                      onClick={() => updateQuantity(item.id, -1)}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      -
+                    </button>
+                    <span className="mx-3 text-lg font-bold">
+                      {cartItem.quantity}
+                    </span>
+                    <button
+                      onClick={() => updateQuantity(item.id, 1)}
+                      className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="mt-3 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Add to Cart
+                  </button>
+                )}
               </div>
             </motion.div>
           );
@@ -119,41 +153,6 @@ function MenuList() {
           Next
         </button>
       </div>
-
-      {/* Модальное окно */}
-      {selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative">
-            <button
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-              onClick={() => setSelectedItem(null)}
-            >
-              ✖
-            </button>
-            <div className="flex flex-col md:flex-row items-center">
-              <img
-                src={`${process.env.REACT_APP_API_GATEWAY_URL}/menu/images/${selectedItem.image_url.split("images/")[1]}`}
-                alt={selectedItem.name}
-                className="w-full md:w-1/2 h-auto object-contain"
-              />
-              <div className="md:ml-6 mt-4 md:mt-0 text-center md:text-left">
-                <h3 className="text-2xl font-bold mb-2">{selectedItem.name}</h3>
-                <p className="text-gray-500 mb-4">{selectedItem.description}</p>
-                <p className="text-lg font-bold mb-4">${selectedItem.price}</p>
-                <button
-                  onClick={() => {
-                    addToCart(selectedItem);
-                    setSelectedItem(null);
-                  }}
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded w-full md:w-auto"
-                >
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
