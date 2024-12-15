@@ -25,6 +25,13 @@ class DishOut(DishBase):
     class Config:
         from_attributes = True
 
+class DishResponse(BaseModel):
+    dishes: list[DishOut]
+    total: int
+    
+    class Config:
+        from_attributes = True
+      
 class UserOut(BaseModel):
     id: int
     username: str

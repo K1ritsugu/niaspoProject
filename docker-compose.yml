@@ -100,6 +100,21 @@ services:
       - notification_service
     networks:
       - food_delivery_network
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    environment:
+      REACT_APP_API_GATEWAY_URL: http://localhost
+    ports:
+      - "3000:3000" 
+    depends_on:
+      - gateway_service
+    networks:
+      - food_delivery_network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
 
 networks:
   food_delivery_network:

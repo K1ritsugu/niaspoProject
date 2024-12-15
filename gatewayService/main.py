@@ -4,9 +4,17 @@ import os
 from fastapi import FastAPI, APIRouter, Request, Response, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.responses import JSONResponse
-
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Gateway Service")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Базовые URL микросервисов
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL")
@@ -171,6 +179,10 @@ async def update_dish(request: Request, dish_id: int):
 @menu_router.delete("/dishes/{dish_id}")
 async def delete_dish(request: Request, dish_id: int):
     return await proxy(request, MENU_SERVICE_URL, f"menu/dishes/{dish_id}")
+
+@menu_router.get("/images/{filename}")
+async def get_menu_image(request: Request, filename: str):
+    return await proxy(request, MENU_SERVICE_URL, f"images/{filename}")
 
 # Маршруты для Payment Service
 @payment_router.post("/pay/")

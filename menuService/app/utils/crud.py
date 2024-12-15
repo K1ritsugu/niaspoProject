@@ -1,6 +1,7 @@
 import os
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.sql import func
 from app.models import models
 from app.schemas import schemas
 
@@ -11,11 +12,19 @@ async def get_dish(db: AsyncSession, dish_id: int):
     return result.scalars().first()
 
 
-# CRUD для получения списка блюд
 async def get_dishes(db: AsyncSession, skip: int = 0, limit: int = 10):
-    query = select(models.Dish).offset(skip).limit(limit)
-    result = await db.execute(query)
-    return result.scalars().all()
+    # Запрос для получения блюд с пагинацией
+    dishes_query = select(models.Dish).offset(skip).limit(limit)
+    result = await db.execute(dishes_query)
+    dishes = result.scalars().all()
+    
+    # Запрос для подсчёта общего количества блюд
+    count_query = select(func.count()).select_from(models.Dish)
+    total_result = await db.execute(count_query)
+    total = total_result.scalar()
+
+    return {"dishes": dishes, "total": total}
+
 
 
 # CRUD для создания блюда

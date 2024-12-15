@@ -1,4 +1,6 @@
+import os
 from fastapi import APIRouter, Depends, UploadFile, File, Form, Query, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from app import dependencies
@@ -8,6 +10,8 @@ from pathlib import Path
 from typing import Optional
 
 router = APIRouter()
+
+IMAGES_DIR = "/app/images" 
 
 @router.post("/dishes/", response_model=schemas.DishOut)
 async def create_dish(
@@ -46,7 +50,7 @@ async def read_dish(dish_id: int, db: AsyncSession = Depends(dependencies.get_db
         raise HTTPException(status_code=404, detail="Dish not found")
     return db_dish
 
-@router.get("/dishes/", response_model=list[schemas.DishOut])
+@router.get("/dishes/", response_model=schemas.DishResponse)
 async def read_dishes(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
@@ -55,6 +59,7 @@ async def read_dishes(
     dishes = await crud.get_dishes(db, skip=skip, limit=limit)
     if not dishes:
         raise HTTPException(status_code=404, detail="No dishes found")
+
     return dishes
 
 @router.put("/dishes/{dish_id}", response_model=schemas.DishOut)
@@ -112,3 +117,10 @@ async def delete_dish(
     if not result:
         raise HTTPException(status_code=400, detail="Failed to delete dish")
     return {"message": "Dish deleted successfully"}
+
+@router.get("/images/{filename}")
+async def get_image(filename: str):
+    file_path = os.path.join(IMAGES_DIR, filename)
+    if os.path.isfile(file_path):
+        return FileResponse(file_path)
+    return {"error": "File not found"}
