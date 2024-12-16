@@ -181,6 +181,30 @@ spec:
 
           ports:
             - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.frontend.image.repository }}
+          env:
+            - name: REACT_APP_API_GATEWAY_URL
+              value: http://212...
+
+          ports:
+            - containerPort: 3000
 
 
 

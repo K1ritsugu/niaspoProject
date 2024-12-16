@@ -29,5 +29,9 @@ userservice:
   image:
     repository: sha256:813ff1d3b71860db669d1fdc20b699760ad515dcfbf97ddfd153fb922be7cb34
 
+frontend:
+  image:
+    repository: sha256:813ff1d3b71860db669d1fdc20b699760ad515dcfbf97ddfd153fb922be7cb34
+
 service:
   type: ClusterIP
