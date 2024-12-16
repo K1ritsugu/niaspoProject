@@ -6,8 +6,6 @@ services:
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
       POSTGRES_DB: food_delivery_db
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -23,8 +21,6 @@ services:
       ADMIN_SECRET_KEY: your-admin-secret-key
     depends_on:
       - postgres
-    ports:
-      - "8000:8000"
     networks:
       - food_delivery_network
     volumes:
@@ -40,8 +36,6 @@ services:
     depends_on:
       - postgres
       - user_service
-    ports:
-      - "9000:9000"
     networks:
       - food_delivery_network
     volumes:
@@ -57,8 +51,6 @@ services:
     depends_on:
       - postgres
       - user_service
-    ports:
-      - "8001:8001"
     networks:
       - food_delivery_network
     volumes:
@@ -74,8 +66,6 @@ services:
     depends_on:
       - postgres
       - user_service
-    ports:
-      - "8002:8002"
     networks:
       - food_delivery_network
     volumes:
