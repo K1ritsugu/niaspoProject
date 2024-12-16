@@ -178,7 +178,6 @@ spec:
               value: http://payment-service:8001
             - name: NOTIFICATION_SERVICE_URL
               value: http://notification-service:8002 
-
           ports:
             - containerPort: 80
 ---
@@ -202,9 +201,9 @@ spec:
           env:
             - name: REACT_APP_API_GATEWAY_URL
               value: http://212...
-
           ports:
             - containerPort: 3000
+
 
 
 

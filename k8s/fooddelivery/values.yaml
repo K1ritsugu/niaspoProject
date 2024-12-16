@@ -8,7 +8,7 @@ postgres:
 
 gatewayservice:
   image:
-    repository: sha256:e5054483c7be0b35bb99d91f9ef41a470962e4404fdbf89af57716b9d608350a
+    repository: sha256:6bb7c98b31f228420c96c9c36c4b7029ade35f53c565fd5007f97344ba9e8b83
   service:
     type: LoadBalancer
     port: 80
