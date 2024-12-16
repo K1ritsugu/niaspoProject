@@ -65,9 +65,16 @@ function MenuList() {
   };
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
     }
   };
 
@@ -124,57 +131,83 @@ function MenuList() {
         })}
       </div>
 
-        {isModalOpen && selectedDish && (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg overflow-hidden w-11/12 md:w-2/3 lg:w-1/2 max-h-screen overflow-y-auto">
-        <div className="p-5">
-          <h2 className="text-2xl font-bold mb-4">{selectedDish.name}</h2>
-          <img
-            src={`${process.env.REACT_APP_API_GATEWAY_URL}/menu/images/${selectedDish.image_url.split("images/")[1]}`}
-            alt={selectedDish.name}
-            className="w-full h-auto object-cover mb-4 transform transition duration-300 hover:scale-110"
-          />
-          <p className="text-gray-500 mb-4">{selectedDish.description}</p>
-          <p className="text-lg font-bold mb-4">${selectedDish.price}</p>
+      {/* Pagination Buttons */}
+      <div className="flex justify-center items-center mt-10">
+        <button
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+          className={`px-6 py-3 mr-2 text-white font-bold rounded ${
+            currentPage === 1
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-700 transition"
+          }`}
+        >
+          Previous
+        </button>
+        <span className="mx-3 text-lg font-bold">{`${currentPage} / ${totalPages}`}</span>
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+          className={`px-6 py-3 ml-2 text-white font-bold rounded ${
+            currentPage === totalPages
+              ? "bg-gray-300 cursor-not-allowed"
+              : "bg-blue-500 hover:bg-blue-700 transition"
+          }`}
+        >
+          Next
+        </button>
+      </div>
 
-          {cart.find((cartItem) => cartItem.id === selectedDish.id) ? (
-            <div className="flex justify-center items-center mt-3">
+      {isModalOpen && selectedDish && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded-lg overflow-hidden w-11/12 md:w-2/3 lg:w-1/2 max-h-screen overflow-y-auto">
+            <div className="p-5">
+              <h2 className="text-2xl font-bold mb-4">{selectedDish.name}</h2>
+              <img
+                src={`${process.env.REACT_APP_API_GATEWAY_URL}/menu/images/${selectedDish.image_url.split("images/")[1]}`}
+                alt={selectedDish.name}
+                className="w-full h-auto object-cover mb-4 transform transition duration-300 hover:scale-110"
+              />
+              <p className="text-gray-500 mb-4">{selectedDish.description}</p>
+              <p className="text-lg font-bold mb-4">${selectedDish.price}</p>
+
+              {cart.find((cartItem) => cartItem.id === selectedDish.id) ? (
+                <div className="flex justify-center items-center mt-3">
+                  <button
+                    onClick={() => updateQuantity(selectedDish.id, -1)}
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l transform transition duration-200 hover:scale-110"
+                  >
+                    -
+                  </button>
+                  <span className="mx-3 text-lg font-bold">
+                    {cart.find((cartItem) => cartItem.id === selectedDish.id)?.quantity || 0}
+                  </span>
+                  <button
+                    onClick={() => updateQuantity(selectedDish.id, 1)}
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r transform transition duration-200 hover:scale-110"
+                  >
+                    +
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => addToCart(selectedDish)}
+                  className="mt-3 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transform transition duration-300 hover:scale-105"
+                >
+                  Добавить в корзину
+                </button>
+              )}
+
               <button
-                onClick={() => updateQuantity(selectedDish.id, -1)}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-l transform transition duration-200 hover:scale-110"
+                onClick={closeModal}
+                className="mt-5 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transform transition duration-200 hover:scale-105"
               >
-                -
-              </button>
-              <span className="mx-3 text-lg font-bold">
-                {cart.find((cartItem) => cartItem.id === selectedDish.id)?.quantity || 0}
-              </span>
-              <button
-                onClick={() => updateQuantity(selectedDish.id, 1)}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r transform transition duration-200 hover:scale-110"
-              >
-                +
+                Закрыть
               </button>
             </div>
-          ) : (
-            <button
-              onClick={() => addToCart(selectedDish)}
-              className="mt-3 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transform transition duration-300 hover:scale-105"
-            >
-              Добавить в корзину
-            </button>
-          )}
-
-          <button
-            onClick={closeModal}
-            className="mt-5 bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transform transition duration-200 hover:scale-105"
-          >
-            Закрыть
-          </button>
+          </div>
         </div>
-      </div>
-    </div>
-  )}
-
+      )}
     </div>
   );
 }
