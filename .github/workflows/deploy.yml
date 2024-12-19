@@ -13,16 +13,16 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build to Server via SSH
-      - uses: appleboy/ssh-action@v1.0.0
-      - with:
-      - host: ${{ secrets.SERVER_HOST }}
-      - username: ${{ secrets.SERVER_USER }}
-      - key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - script: |
-          cd /root/Artur/niaspoProject
-          git pull
-          docker-compose down
-          docker-compose build
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /root/Artur/niaspoProject
+            git pull
+            docker-compose down
+            docker-compose build
 
   test:
     name: Test
@@ -33,14 +33,14 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Tests
-      - uses: appleboy/ssh-action@v1.0.0
-      - with:
-      - host: ${{ secrets.SERVER_HOST }}
-      - username: ${{ secrets.SERVER_USER }}
-      - key: ${{ secrets.SSH_PRIVATE_KEY }}
-      - script: |
-          cd /root/Artur/niaspoProject
-          curl localhost/docs
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /root/Artur/niaspoProject
+            curl localhost/docs
 
 
   deploy:
