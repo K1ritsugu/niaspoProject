@@ -1,29 +1,59 @@
 name: CI/CD with Docker Compose
-
 on:
   push:
     branches:
-      - master # Запускается при пуше в ветку master
+      - master
 
 jobs:
-  deploy:
-    name: Deploy to Server
+  build:
+    name: Build
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Клонируем репозиторий
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Build to Server via SSH
+      - uses: appleboy/ssh-action@v1.0.0
+      - with:
+      - host: ${{ secrets.SERVER_HOST }}
+      - username: ${{ secrets.SERVER_USER }}
+      - key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - script: |
+      - cd /root/Artur/niaspoProject
+      - git pull
+      - docker-compose down
+      - docker-compose build
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Run Tests
+      - script: |
+      - cd /root/Artur/niaspoProject
+      - curl localhost/docs
+
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2. Подключаемся по SSH и выполняем git pull + перезапуск docker-compose
       - name: Deploy to Server via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.SERVER_HOST }} # IP или хост сервера
-          username: ${{ secrets.SERVER_USER }} # Имя пользователя
-          key: ${{ secrets.SSH_PRIVATE_KEY }} # SSH ключ для подключения
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /root/Artur/niaspoProject  # Путь до вашего проекта на сервере
-            git pull                  # Получаем последние изменения
-            docker-compose down       # Останавливаем текущие контейнеры
-            docker-compose up --build -d  # Собираем и запускаем новые контейнеры
+            cd /root/Artur/niaspoProject
+            git pull
+            docker-compose down
+            docker-compose up --build -d
