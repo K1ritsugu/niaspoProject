@@ -40,8 +40,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /root/Artur/niaspoProject
-            git pull
-            docker-compose down
             docker-compose up -d
 
   test:
