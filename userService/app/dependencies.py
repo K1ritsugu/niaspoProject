@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from app.utils import crud
 
 load_dotenv()
-
+# 1
 DATABASE_URL = os.getenv("DATABASE_URL")
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY")
