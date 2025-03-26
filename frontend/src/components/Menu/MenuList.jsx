@@ -99,7 +99,7 @@ function MenuList() {
               <div className="p-4 text-center">
                 <h3 className="text-lg font-semibold">{item.name}</h3>
                 <p className="text-gray-500">{item.description}</p>
-                <p className="text-lg font-bold mt-2">${item.price}</p>
+                <p className="text-lg font-bold mt-2">{item.price} respect</p>
 
                 {cartItem ? (
                   <div className="flex justify-center items-center mt-3">

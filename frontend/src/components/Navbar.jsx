@@ -25,7 +25,7 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <h1>Food Service</h1>
+      <h1>TurboSlon</h1>
       <div className="navbar-links">
         <Link to="/menu">Menu</Link>
         <Link to="/orders">Orders</Link>
