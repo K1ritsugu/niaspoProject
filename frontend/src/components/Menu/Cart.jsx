@@ -101,7 +101,7 @@ function Cart() {
                 />
                 <div className="menu-details flex-grow px-4">
                   <h3 className="text-lg font-semibold">{item.name}</h3>
-                  <p className="text-gray-500">Price: {item.price} respect</p>
+                  <p className="text-gray-500">Price: ${item.price}</p>
                 </div>
                 <div className="quantity-controls flex items-center space-x-3">
                   <button

@@ -99,7 +99,7 @@ function MenuList() {
               <div className="p-4 text-center">
                 <h3 className="text-lg font-semibold">{item.name}</h3>
                 <p className="text-gray-500">{item.description}</p>
-                <p className="text-lg font-bold mt-2">{item.price} respect</p>
+                <p className="text-lg font-bold mt-2">${item.price}</p>
 
                 {cartItem ? (
                   <div className="flex justify-center items-center mt-3">
@@ -169,7 +169,7 @@ function MenuList() {
                 className="w-full h-auto object-cover mb-4 transform transition duration-300 hover:scale-110"
               />
               <p className="text-gray-500 mb-4">{selectedDish.description}</p>
-              <p className="text-lg font-bold mb-4">${selectedDish.price}</p>
+              <p className="text-lg font-bold mb-4">{selectedDish.price} respect</p>
 
               {cart.find((cartItem) => cartItem.id === selectedDish.id) ? (
                 <div className="flex justify-center items-center mt-3">
